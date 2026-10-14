@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-$files = ['process-test.php', 'contract-test.php', 'runtime-test.php'];
+$files = ['process-test.php', 'contract-test.php', 'runtime-test.php', 'configuration-test.php', 'fiscal-operations-test.php', 'async-test.php'];
 foreach ($files as $file) {
     $path = __DIR__ . '/' . $file;
     if (!is_file($path)) { fwrite(STDERR, "Missing test suite: {$file}\n"); exit(1); }

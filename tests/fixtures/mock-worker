@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import json, os, sys, time
-if len(sys.argv) != 3 or sys.argv[1] != '--parent-pid':
+if len(sys.argv) != 3 or sys.argv[1] != '--parent-pid' or int(sys.argv[2]) != os.getppid():
     sys.exit(22)
 mode = os.environ.get('ACBR_TEST_MODE', 'ok')
 if mode == 'no-read':
@@ -14,6 +14,32 @@ if mode == 'flood':
 frame = dict(versao=1, id=req['id'], sourceRevision=req['sourceRevision'],
              contractHash=req['contractHash'], sucesso=True, estado='XML_GERADO',
              xmlBase64='PHRlc3QvPg==')
+if mode == 'fiscal':
+    import base64
+    assert base64.b64decode(req['config']['certificado']['pfxBase64']) == b'MOCK_PFX_NOT_A_REAL_CERTIFICATE'
+    assert req['config']['certificado']['senha'] == 'MOCK_SECRET_DO_NOT_LOG'
+    assert req['config']['csc'] == dict(id='000001', valor='MOCK_CSC')
+    cmd = req['comando']
+    states = dict(gerarXml='XML_GERADO', validar='VALIDADO', assinar='ASSINADO',
+                  transmitir='AUTORIZADO', consultar='AUTORIZADO', cancelar='CANCELADO',
+                  cartaCorrecao='EVENTO_REGISTRADO', inutilizar='INUTILIZADO')
+    frame['estado'] = states[cmd]
+    frame['envioIniciado'] = cmd in ['transmitir','cancelar','cartaCorrecao','inutilizar']
+    if cmd in ['validar','assinar','transmitir']:
+        assert base64.b64decode(req['xmlBase64']).startswith(b'<NFe>')
+    if cmd in ['consultar','cancelar','cartaCorrecao']:
+        assert req['chave'] == '1' * 44
+    if cmd == 'cancelar':
+        assert len(req['protocolo']) == 15 and len(req['justificativa']) >= 15
+    if cmd == 'cartaCorrecao':
+        assert req['sequenciaEvento'] == 1 and len(req['correcao']) >= 15
+    if cmd == 'inutilizar':
+        assert req['inutilizacao'] == dict(ano=26,serie=1,numeroInicial=1,numeroFinal=2)
+        assert 'ano' not in req
+    if cmd in ['transmitir','consultar','cancelar','cartaCorrecao','inutilizar']:
+        frame.update(cStat=dict(transmitir=100,consultar=100,cancelar=135,cartaCorrecao=135,inutilizar=102)[cmd], protocolo='2'*15, chave='1'*44)
+    if frame['envioIniciado']:
+        print(json.dumps(dict(tipo='envioIniciado',id=req['id'])), flush=True)
 if mode == 'stderr':
     os.write(2, b'private-data-must-not-leak\n' * 50)
 if mode == 'send-hang':

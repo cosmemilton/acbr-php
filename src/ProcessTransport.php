@@ -14,7 +14,7 @@ final class ProcessTransport
     }
 
     /** @internal Caller must verify executable and assets before invoking. */
-    public function execute(string $executable, string $directory, #[\SensitiveParameter] array $environment, #[\SensitiveParameter] array $request, ?callable $cancelled = null): FiscalResult
+    public function execute(string $executable, string $directory, #[\SensitiveParameter] array $environment, #[\SensitiveParameter] array $request, #[\SensitiveParameter] ?callable $cancelled = null): FiscalResult
     {
         if (!function_exists('proc_open')) { throw new AcbrException('PROC_OPEN_INDISPONIVEL', 'Habilite proc_open para executar o motor.'); }
         if ($cancelled && $cancelled()) { throw new AcbrException('OPERACAO_CANCELADA', 'Operação cancelada antes da execução.'); }
@@ -68,7 +68,7 @@ final class ProcessTransport
                             if (array_key_exists('envioIniciado', $frame) && (!is_bool($frame['envioIniciado']) || ($sending && !$frame['envioIniciado']))) { throw new AcbrException('RESPOSTA_INVALIDA', 'Status de envio inconsistente.', $uncertain || $sending); }
                             foreach (['codigo','xMotivo','chave','protocolo','recibo'] as $key) { if (array_key_exists($key, $frame) && !is_string($frame[$key])) { throw new AcbrException('RESPOSTA_INVALIDA', 'Campo de resposta inválido.', $uncertain || $sending); } }
                             if ($sending) { $frame['envioIniciado'] = true; }
-                            $result = new FiscalResult($frame);
+                            $result = new FiscalResult($frame, $request['comando'] ?? null);
                         }
                     }
                 } else { usleep(1000); }
@@ -83,9 +83,12 @@ final class ProcessTransport
         } catch (\Throwable $error) {
             $clean = $this->terminate($process);
             if (!$clean) {
-                throw new AcbrException($error instanceof AcbrException ? $error->codigo : 'FALHA_MOTOR', 'Falha no motor; encerramento não confirmado. Interrompa o uso deste processo PHP.', $uncertain || $sending, false);
+                throw new AcbrException($error instanceof AcbrException ? $error->codigo : 'FALHA_MOTOR', 'Falha no motor; encerramento não confirmado. Interrompa o uso deste processo PHP.', $uncertain || $sending, false, ($request['comando'] ?? '') === 'transmitir' ? ($request['xmlBase64'] ?? null) : null);
             }
-            throw $error;
+            if ($error instanceof AcbrException) {
+                throw new AcbrException($error->codigo, $error->getMessage(), $error->resultadoDesconhecido, $error->limpezaConfirmada, ($error->resultadoDesconhecido && ($request['comando'] ?? '') === 'transmitir') ? ($request['xmlBase64'] ?? null) : null);
+            }
+            throw new AcbrException('FALHA_OPERACAO', 'Falha durante a operação; verifique a situação fiscal antes de repetir.', $uncertain || $sending, true, ($request['comando'] ?? '') === 'transmitir' ? ($request['xmlBase64'] ?? null) : null);
         } finally {
             $bytes = '';
             foreach ($pipes as $pipe) { if (is_resource($pipe)) { fclose($pipe); } }
