@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "version": "0.1.2",
+  "upstreamRepository": "https://github.com/cosmemilton/acbr-node",
+  "upstreamCommit": "eea82662eb60ea05b5dd164cf293438a202760a7",
+  "releaseManifest": "release/0.1.2/manifest.json",
+  "platform": "linux",
+  "arch": "x64",
+  "sourceRevision": 48590,
+  "contractHash": "e5a497cefe8e0e350a30da5cc04e88b35c38a98535893d52f878890260d1346d",
+  "manifestSha256": "30cc2a9acf9e7882070a0bba33d3ccd0ff2f406b148f4377e480ccce2f415417",
+  "archive": {
+    "name": "cosmemilton-acbr-node-linux-x64",
+    "file": "cosmemilton-acbr-node-linux-x64-0.1.2.tgz",
+    "url": "https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.1.2.tgz",
+    "releaseUrl": "https://miltonjunior.dev.br/acbr-node/releases/0.1.2/cosmemilton-acbr-node-linux-x64-0.1.2.tgz",
+    "bytes": 51569703,
+    "sha256": "e27348cd284a7f7de5276dd6ce90ae7c0bfdb6257685cec115fead36b9592e4e"
+  }
+}

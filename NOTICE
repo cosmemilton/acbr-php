@@ -1,0 +1,15 @@
+ACBr Node — integração Node.js/Free Pascal para os componentes ACBr.
+Copyright 2026 Cosmemilton e colaboradores.
+
+Este projeto usa os fontes públicos do Projeto ACBr, sob LGPL 2.1 ou posterior.
+Os avisos originais das unidades e as licenças das dependências são preservados.
+Fontes: https://svn.code.sf.net/p/acbr/code/trunk2
+A revisão exata, hashes e materiais de reconstrução acompanham cada runtime.
+Não é um pacote oficial do Projeto ACBr. Não depende de Delphi nem dos binários ACBr Pro.
+
+ACBr PHP — cliente PHP independente de frameworks, implementação inicial 2026.
+Contrato e fixture sintética derivados de cosmemilton/acbr-node,
+commit eea82662eb60ea05b5dd164cf293438a202760a7, distribuição 0.1.2.
+Contrato ACBr: revisão 48590; licença LGPL-2.1-or-later.
+O motor distribuído separadamente é reutilizado sem modificação.
+O instalador preserva todos os arquivos inventariados, incluindo sources/ e licenses/.
