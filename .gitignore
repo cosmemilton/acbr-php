@@ -1,0 +1,6 @@
+/vendor/
+/runtime/
+*.pfx
+*.p12
+.env
+/tests/output/
