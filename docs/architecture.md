@@ -5,10 +5,11 @@
 1. Configuration: CNPJ textual, UF, modelo 55/65 e ambiente. Não transforma identificadores em números.
 2. Contract: carrega a IR fixada e valida dados/expõe ajuda. A IR contém 204 tipos.
 3. Document e Acbr\Model: modelos imutáveis; 124 objetos, 55 enums e 25 coleções gerados deterministicamente.
-4. Emitter: API síncrona local gerarXml/validar, contrato e configuração para cada operação, fechamento permanente.
+4. Emitter: API síncrona dos oito comandos nativos, contrato/configuração para cada operação, fechamento permanente.
 5. NativeRuntime: inventário/checksums, instalação offline, ambiente mínimo e diagnóstico sem executar código nativo.
 6. ProcessTransport: processo novo por chamada, argv sem shell, --parent-pid, JSONL via stdin, resultado validado por id/versão/revisão/hash.
-7. FiscalResult/AcbrException: acesso explícito a XML/dados, diagnóstico JSON/debug reduzido; falhas de transporte não provocam repetição automática.
+7. Async\OperationQueue/Future/AsyncEmitter: fila FIFO opcional, execução fork isolada e cancelamento com limpeza limitada.
+8. FiscalResult/AcbrException: acesso explícito a XML/dados, diagnóstico JSON/debug reduzido; falhas de transporte não provocam repetição automática.
 
 Não há aplicação Laravel/Symfony, container de serviços ou mecanismo FFI. O Composer fornece somente autoload PSR-4.
 O runtime é distribuído separado do código PHP e não é reconstruído por este pacote.
@@ -44,15 +45,20 @@ quando o pai desaparece. Não usamos sinais em grupos de processos desconhecidos
 - SensitiveParameter protege argumentos nas stacks do SDK; chamadas externas e
   mecanismos de observabilidade do consumidor também precisam de política de redaction.
 
-## Marcos seguintes (não concluídos)
+## Implementado nesta expansão
 
-1. Certificado A1 e CSC: representação privada, ciclo de vida, pipes e testes sintéticos sem segredos reais.
-2. assinar com certificados de teste gerados especificamente para laboratório.
-3. consultar/transmitir/cancelar/cartaCorrecao/inutilizar: validação de argumentos,
-   resultado incerto, recuperação e nenhuma repetição automática.
-4. Testes de rede apenas com endpoints locais simulados e autorização específica;
-   homologação real fica separada dos testes de desenvolvimento.
-5. Suíte NFC-e modelo 65 dedicada, matriz PHP 8.2/8.3/8.4 e Linux suportados.
-6. Publicação/release somente após revisão e autorização; este checkpoint não foi publicado no Packagist.
+- CertificateA1 e Csc com bytes limitados, serialização explícita para pipes e logs redigidos.
+- assinar com prova nativa de certificados efêmeros de laboratório.
+- consultar/transmitir/cancelar/cartaCorrecao/inutilizar com validação de argumentos
+  e mocks locais, inclusive passagem por JSONL real.
+- FiscalResult com classificação conservadora por operação, estado, cStat, chave e protocolo.
+- Recuperação explícita de XML em erros de transmissão incerta, sem retry automático.
+- Fila assíncrona serial opcional com limite, Future e fachada dos oito comandos.
+- NFC-e65 dedicada com QR/CSC e assinatura XML verificados independentemente.
 
-DANFE, impressão, A3, ARM e Windows não fazem parte do escopo inicial.
+## Limites que permanecem
+
+Homologação SEFAZ não foi executada. Os testes nunca chamam endpoints fiscais reais.
+A3, DANFE e impressão não são operações do worker fixado e precisam de desenvolvimento
+nativo separado. Windows/ARM ficam fora da arquitetura Linux escolhida.
+Publicação, merge e release dependem de revisão/autorização; nenhum teste é prova de homologação.

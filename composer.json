@@ -17,9 +17,15 @@
   ],
   "scripts": {
     "test": "php tests/run.php",
-    "test:offline": "php tests/offline.php"
+    "test:offline": "php tests/offline.php",
+    "test:signing-offline": "php tests/signing-offline.php",
+    "test:async-native-offline": "php tests/async-native-offline.php"
   },
   "suggest": {
-    "ext-zlib": "Required only to install the pinned native .tgz archive"
+    "ext-zlib": "Required only to install the pinned native .tgz archive",
+    "ext-pcntl": "Required for optional Linux asynchronous queue",
+    "ext-posix": "Required for optional Linux asynchronous queue",
+    "ext-openssl": "Required only for synthetic signing test certificate generation",
+    "ext-dom": "Required only for independent XMLDSig verification in tests"
   }
 }

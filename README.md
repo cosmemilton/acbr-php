@@ -1,15 +1,17 @@
 # ACBr PHP
 
 Cliente PHP independente de Laravel/Symfony para o motor nativo público ACBr NF-e/NFC-e.
-**MVP offline em desenvolvimento. Não é uma versão fiscal pronta para produção nem paridade completa com o Node.**
+**SDK em desenvolvimento. APIs do contrato Node implementadas; ainda não homologado para uso fiscal real.**
 
 - PHP 8.2+, Composer, sem dependências de framework ou FFI.
 - Motor **Linux x64 com glibc**, fixado na distribuição Node 0.1.2; sem Windows, ARM ou Alpine/musl.
 - Classes de configuração, documento, resultado e erro; 204 modelos gerados do contrato original.
-- gerarXml() e validar() reais via executável, um processo por operação.
+- Oito operações do contrato: gerarXml, validar, assinar, transmitir, consultar, cancelar, cartaCorrecao e inutilizar, sempre um processo nativo por operação.
 - Prazo, cancelamento cooperativo, limites de bytes, pipes não bloqueantes, drenagem de stderr e encerramento do processo pertencente à chamada.
 - Help de tipos/campos, validação estrutural e instalador nativo com SHA-256, inventário fechado e rejeição de symlinks.
-- Nenhum certificado, senha ou chamada SEFAZ é necessário para o exemplo ou os testes deste MVP.
+- A1 e CSC protegidos; testes de assinatura usam somente certificados sintéticos descartáveis.
+- Fila assíncrona opcional para Linux com pcntl/posix; API síncrona sem essas extensões.
+- Nenhum teste deste projeto chama a SEFAZ ou usa certificado real.
 
 ## Instalação de desenvolvimento
 
@@ -94,7 +96,7 @@ AcbrException expõe codigo, resultadoDesconhecido e limpezaConfirmada.
 Erros de documento usam Acbr\Model\ValidationException; help usa FieldHelpException.
 Não grave XML ou FiscalResult::data() em logs: a serialização JSON/debug padrão do
 resultado traz somente estado e códigos seguros. Não há repetição automática de operações.
-Cancelamento é cooperativo, verificado durante a chamada síncrona; não existe fila assíncrona neste MVP.
+Cancelamento é cooperativo, verificado durante a chamada síncrona. Veja a fila em [async](docs/async.md).
 O timeout cobre a comunicação após proc_open, não a verificação prévia de arquivos.
 Nenhuma API user-space pode garantir matar um processo bloqueado no kernel;
 se o encerramento não for confirmado, o emissor é fechado e o erro sinaliza esse fato.
@@ -104,17 +106,60 @@ se o encerramento não for confirmado, o emissor é fechado e o erro sinaliza es
     composer validate --strict
     composer test
     ACBR_RUNTIME_DIR=/caminho/runtime composer test:offline
+    ACBR_RUNTIME_DIR=/caminho/runtime composer test:signing-offline
+    ACBR_TEST_RUNTIME=/caminho/runtime composer test:async-native-offline
 
 A suíte usa Python 3 somente como worker de teste; o pacote PHP não depende de Python.
 Veja [verificação](docs/verification.md) para resultados e limites do ambiente testado.
 
-## Escopo ainda pendente
+## A1, CSC e operações fiscais
 
-Não implementados neste checkpoint: certificado A1/CSC, assinar, transmitir,
-consultar, cancelar, cartaCorrecao, inutilizar, fila assíncrona, homologação SEFAZ,
-DANFE/impressão, A3, Windows e ARM. Uma configuração ambiente:1 não significa que produção
-foi homologada: as duas operações públicas continuam exclusivamente locais.
-Há cobertura real de geração NF-e modelo 55; NFC-e modelo 65 ainda precisa de suíte dedicada.
+    use Acbr\CertificateA1;
+    use Acbr\Csc;
+
+    $config = new Configuration(
+        '11222333000181', 'CE', modelo: 55, ambiente: 2,
+        certificado: CertificateA1::fromFile($caminhoPfx, $senhaObtidaDeFonteSegura),
+    );
+    $emissor = new Emitter($config);
+    $assinado = $emissor->assinar($xml);
+
+Para NFC-e, configure modelo 65 e csc: new Csc($idCsc, $tokenCsc).
+Dados de A1/CSC seguem somente pelo stdin do processo nativo, nunca pelos argumentos.
+JSON/debug de configuração não expõem CNPJ, PFX, senha ou CSC.
+Veja [certificados e assinatura](docs/certificates.md).
+
+As operações de rede exigem uma decisão explícita da aplicação do consumidor.
+O SDK não conecta só por construir objetos ou instalar o runtime.
+Os formatos são:
+
+    $emissor->transmitir($xmlAssinado);
+    $emissor->consultar(['chave' => $chave, 'recibo' => $reciboOpcional]);
+    $emissor->cancelar(['chave' => $chave, 'protocolo' => $protocolo, 'justificativa' => $texto]);
+    $emissor->cartaCorrecao(['chave' => $chave, 'correcao' => $texto, 'sequenciaEvento' => 1]);
+    $emissor->inutilizar(['ano' => 26, 'serie' => 1, 'numeroInicial' => 1, 'numeroFinal' => 2, 'justificativa' => $texto]);
+
+Omita recibo quando não houver; não envie null. Carta de correção é restrita ao modelo 55.
+Identificadores fiscais são strings. Textos respeitam os limites UTF-8 em bytes do motor.
+
+resultado->statusEnvio() exige estado, cStat e identidade/protocolo coerentes antes
+de classificar uma operação como confirmada. Resultado incompleto ou contraditório
+permanece resultado_incerto. Em erro de transmissão incerta, xmlRecuperacao() dá
+acesso explícito ao XML original; ele não aparece no JSON/debug do erro.
+**Nunca retransmita automaticamente depois de timeout, conexão interrompida ou resultado incerto.**
+
+## Matriz, limites e homologação
+
+A geração/assinatura/validação real foi testada offline para NF-e 55 e NFC-e 65,
+incluindo verificação independente de XMLDSig e QR/CSC. Operações SEFAZ foram
+testadas por mocks locais, não por homologação remota. Ambiente 2 continua sendo
+uma transmissão fiscal real quando a aplicação chama uma operação de rede.
+
+O pacote mantém Linux x64/glibc como alvo. PHP 8.2/8.3/8.4 e detalhes de prova
+estão em [matriz](docs/platform-matrix.md) e [verificação](docs/verification.md).
+DANFE/impressão e A3 não existem no motor fixado. Exigem extensão/substituição
+nativa própria; não foram simulados como métodos funcionais.
+Windows e ARM não são suportados por este pacote, conforme escopo Linux.
 
 ## Origem e licença
 

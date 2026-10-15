@@ -27,7 +27,7 @@ foreach (['id','contract','base64','state','status','bool','json','utf8','duplic
 }
 foreach (['hang','no-read','send-hang'] as $mode) {
     $start = hrtime(true);
-    try { $call($mode, 100); throw new RuntimeException('Expected timeout'); }
+    try { $call($mode, 100, request:$mode === 'send-hang' ? array_replace($req, ['comando'=>'transmitir']) : $req); throw new RuntimeException('Expected timeout'); }
     catch (AcbrException $e) {
         $check($e->codigo === 'TIMEOUT_MOTOR', $mode . ' timeout');
         $check($e->limpezaConfirmada, $mode . ' killed');
@@ -56,5 +56,27 @@ try {
     throw new RuntimeException('Expected invalid response');
 } catch (AcbrException $e) {
     $check(!str_contains(print_r($e->getTrace(), true), 'TRACE_PRIVATE_SENTINEL'), 'exception trace redaction');
+}
+try {
+    $call('send-hang', 100, request:array_replace($req, ['comando'=>'transmitir','xmlBase64'=>base64_encode('<NFe>RECOVERY_SENTINEL</NFe>')]));
+    throw new RuntimeException('Expected uncertain send');
+} catch (AcbrException $e) {
+    $check($e->resultadoDesconhecido && $e->xmlRecuperacao()==='<NFe>RECOVERY_SENTINEL</NFe>', 'recover XML on actual transport failure');
+    $check(!str_contains(json_encode($e), 'RECOVERY_SENTINEL') && !str_contains(print_r($e,true), 'RECOVERY_SENTINEL'), 'recovery redacted in summaries');
+}
+$probes = 0;
+try {
+    $call('send-hang', 1000, cancel:static function () use (&$probes): bool { if (++$probes === 5) { throw new RuntimeException('CALLBACK_PRIVATE_SENTINEL'); } return false; }, request:array_replace($req, ['comando'=>'transmitir','xmlBase64'=>base64_encode('<NFe>RECOVERY_CALLBACK</NFe>')]));
+    throw new RuntimeException('Expected callback failure');
+} catch (AcbrException $e) {
+    $check($e->resultadoDesconhecido && $e->xmlRecuperacao()==='<NFe>RECOVERY_CALLBACK</NFe>', 'callback failure preserves recovery');
+    $check(!str_contains((string)$e, 'CALLBACK_PRIVATE_SENTINEL'), 'callback error sanitized');
+}
+$capture = 'CALLBACK_CAPTURE_SECRET_SENTINEL';
+try {
+    (new ProcessTransport(100))->execute(__DIR__.'/fixtures/mock-worker',__DIR__,['PATH'=>'/usr/bin:/bin','ACBR_TEST_MODE'=>'hang'],$req,static function () use ($capture): bool { return $capture === ''; });
+    throw new RuntimeException('Expected timeout with callback');
+} catch (AcbrException $e) {
+    $check(!str_contains(print_r($e->getTrace(),true),$capture), 'callback closure captures redacted');
 }
 echo "Process transport: {$count} assertions passed\n";
