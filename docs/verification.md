@@ -1,5 +1,58 @@
 # Verificação da expansão PHP
 
+## Recuperação nativa: 17/10/2026
+
+Execução isolada em WSL Ubuntu 24.04, Linux x86-64/glibc, PHP 8.3.6. Os resultados
+desta seção correspondem ao código local de `recuperarXml` e ao runtime 0.2.0;
+a matriz de 14/10 abaixo registra a versão anterior.
+
+- Suíte completa: **3.776 checks/assertions** — processo 70, contrato/modelos 3.228,
+  runtime 45, configuração 59, operações fiscais 105, recuperação 195 e async 74.
+- Runtime oficial 0.2.0: manifesto fixado e **252 arquivos** verificados.
+- Motor oficial 0.2.0: **106 assertions de assinatura nativa offline**, NF-e/NFC-e,
+  schema, XMLDSig e QR, com A1 sintético efêmero.
+- Recuperação nativa offline: **291 assertions**, com `ProcessTransport` real e
+  motor compilado das fontes exatas 0.2.0 com `ACBR_NODE_TEST`. O HTTPS ficou
+  restrito ao loopback e usou CA, A1 e respostas sintéticas; o runtime oficial
+  permaneceu inalterado e foi verificado novamente ao final.
+- Composer `validate --strict`, geração determinística de 204 modelos e lint dos
+  exemplos aprovados. Revisão independente da API e do roteiro pessoal aprovada.
+
+O teste de recuperação cobre `XML_RECUPERADO`/100 com `nfeProc`, schema, vínculo da
+chave/ambiente, digest, RSA/C14N e preservação do XML assinado. Cobre também 217,
+protocolo ausente, chave e digest divergentes e assinatura adulterada rejeitada
+antes do HTTP. Contagens de requisições verificam ausência de retry automático.
+O binário de teste não substitui o runtime fixado: o resolvedor de produção
+continua rejeitando runtimes de teste.
+
+Os testes automatizados acima não usaram A1 real, SEFAZ ou nova numeração.
+Separadamente, o usuário executou pessoalmente sete etapas em homologação PE,
+NF-e 55: emissão, inutilização individual, cancelamento, emissão preservando o
+XML assinado sem protocolo, inutilização de faixa, consulta e recuperação
+integrada. As seis primeiras etapas usaram o cliente/runtime 0.1.2 e a sexta
+montou o `nfeProc` no consumidor. A sétima usou `Emitter::recuperarXml` com o
+runtime 0.2.0 e o mesmo XML já autorizado, sem nova numeração ou montagem no
+aplicativo; retornou `XML_RECUPERADO`/100. A conferência posterior foi offline:
+schema `procNFe_v4.00.xsd`, assinatura/digest, identidade, valor, protocolo da
+autorização original e preservação dos bytes XML retornados e das fontes.
+Os dados, certificado e artefatos fiscais reais permanecem privados e não fazem
+parte deste repositório. Essa prova cobre o caso exercitado, sem certificar
+todos os cenários ou produção. O runtime preserva o frame nativo e o `nfeProc`;
+não exporta a resposta SOAP original.
+
+```sh
+ACBR_TEST_RUNTIME=/caminho/runtime-0.2.0 \
+ACBR_TEST_RUNTIME_ARCHIVE=/caminho/cosmemilton-acbr-node-linux-x64-0.2.0.tgz \
+composer test
+ACBR_RUNTIME_DIR=/caminho/runtime-0.2.0 composer test:signing-offline
+ACBR_RUNTIME_DIR=/caminho/runtime-0.2.0 composer test:recovery-native-offline
+```
+
+A integração de recuperação sintética exige, além das extensões de teste,
+FPC/gcc e fontes completas do runtime. Não altera o truststore do sistema.
+
+## Registro anterior: 14/10/2026
+
 Data: 14/10/2026. Execução exclusivamente em computador cloud Linux x86-64/glibc,
 Debian 13. Nenhum arquivo ou recurso do computador do usuário foi usado.
 

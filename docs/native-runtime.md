@@ -16,15 +16,19 @@ A verificação de hashes não testa compatibilidade da glibc, disponibilidade d
 `resources/runtime-release.json` fixa:
 
 - Projeto upstream: `https://github.com/cosmemilton/acbr-node`
-- Commit: `eea82662eb60ea05b5dd164cf293438a202760a7`
-- Publicação: `cosmemilton-acbr-node-linux-x64` versão `0.1.2`
+- Commit que ancora o manifesto de publicação: `5ff66828eb70f942608517f1e11719272b2786b8`
+- Publicação: `cosmemilton-acbr-node-linux-x64` versão `0.2.0`
 - Revisão SVN ACBr: `48590`
 - Contrato: `e5a497cefe8e0e350a30da5cc04e88b35c38a98535893d52f878890260d1346d`
-- Arquivo: `cosmemilton-acbr-node-linux-x64-0.1.2.tgz`, exatamente `51569703` bytes
-- SHA256 do arquivo: `e27348cd284a7f7de5276dd6ce90ae7c0bfdb6257685cec115fead36b9592e4e`
-- SHA256 do `runtime/manifest.json`: `30cc2a9acf9e7882070a0bba33d3ccd0ff2f406b148f4377e480ccce2f415417`
+- Arquivo: `cosmemilton-acbr-node-linux-x64-0.2.0.tgz`, exatamente `51633932` bytes
+- SHA256 do arquivo: `d2beccbcf31820ebfc49ce0e246b8fe500f5757df458a0985cd09745ea369c45`
+- SHA256 do `runtime/manifest.json`: `17f1f7ae68f2c358f7815130301cc9ea83c0919cc0faf185ceb02e9d93f34f29`
 
-O hash e o tamanho do arquivo foram obtidos do manifesto de publicação no commit fixado. O manifesto do runtime foi extraído do arquivo oficial após a confirmação desses valores. Todos os 251 arquivos inventariados foram verificados. O SDK não aceita um manifesto arbitrário apenas porque os hashes dentro dele são consistentes.
+O hash e o tamanho do arquivo foram obtidos do manifesto de publicação no commit fixado. O manifesto do runtime foi extraído do arquivo oficial após a confirmação desses valores. Todos os 252 arquivos inventariados foram verificados. O SDK não aceita um manifesto arbitrário apenas porque os hashes dentro dele são consistentes.
+
+Esse commit identifica a cópia versionada do manifesto de publicação. O registro
+npm consultado não informou `gitHead`; portanto, ele não é apresentado como prova
+do commit que publicou o pacote npm.
 
 A cadeia de confiança começa na cópia confiável deste pacote PHP, incluindo seu código e arquivo de versão fixada. SHA256 detecta divergência; não substitui a confiança inicial no distribuidor. A atualização da versão requer revisão explícita de código, contrato, publicação e hashes, não uma opção `--force` ou um checksum fornecido pela linha de comando.
 
@@ -34,12 +38,12 @@ O instalador não faz downloads e não executa scripts do pacote. Obtenha o arqu
 
 ```sh
 curl --fail --location --proto '=https' --tlsv1.2 \
-  -o cosmemilton-acbr-node-linux-x64-0.1.2.tgz \
-  https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.1.2.tgz
+  -o cosmemilton-acbr-node-linux-x64-0.2.0.tgz \
+  https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.2.0.tgz
 
 php vendor/bin/acbr-php runtime:install \
-  ./cosmemilton-acbr-node-linux-x64-0.1.2.tgz \
-  /opt/minha-aplicacao/acbr-runtime-0.1.2
+  ./cosmemilton-acbr-node-linux-x64-0.2.0.tgz \
+  /opt/minha-aplicacao/acbr-runtime-0.2.0
 ```
 
 Sem o último argumento, o destino é `runtime/linux-x64` dentro do pacote PHP. Em um checkout de desenvolvimento, use `php bin/acbr-php`.
@@ -53,10 +57,10 @@ Também é possível copiar um runtime previamente instalado e que corresponda e
 ```sh
 php vendor/bin/acbr-php runtime:install \
   /caminho/node_modules/cosmemilton-acbr-node-linux-x64/runtime \
-  /opt/minha-aplicacao/acbr-runtime-0.1.2
+  /opt/minha-aplicacao/acbr-runtime-0.2.0
 ```
 
-O diretório de origem passa pela mesma verificação de manifesto e dos 251 arquivos. Outras versões, mesmo com contrato fiscal idêntico, são rejeitadas. O destino não pode ser um subdiretório da origem.
+O diretório de origem passa pela mesma verificação de manifesto e dos 252 arquivos. Outras versões, mesmo com contrato fiscal idêntico, são rejeitadas. O destino não pode ser um subdiretório da origem.
 
 ## Resolução e diagnóstico
 
@@ -67,7 +71,7 @@ A resolução usa, nesta ordem:
 3. `runtime/linux-x64` do pacote PHP.
 
 ```sh
-export ACBR_RUNTIME_DIR=/opt/minha-aplicacao/acbr-runtime-0.1.2
+export ACBR_RUNTIME_DIR=/opt/minha-aplicacao/acbr-runtime-0.2.0
 php vendor/bin/acbr-php runtime:verify
 php vendor/bin/acbr-php runtime:diagnose
 php vendor/bin/acbr-php runtime:release
@@ -78,7 +82,7 @@ php vendor/bin/acbr-php runtime:release
 ```php
 use Acbr\NativeRuntime;
 
-$runtime = NativeRuntime::resolve('/opt/minha-aplicacao/acbr-runtime-0.1.2');
+$runtime = NativeRuntime::resolve('/opt/minha-aplicacao/acbr-runtime-0.2.0');
 $runtime->directory;       // Raiz canônica verificada; root é um alias.
 $runtime->executable;      // Caminho absoluto do acbr-worker verificado.
 $runtime->environment();   // Ambiente mínimo para proc_open.
@@ -103,8 +107,8 @@ Erros comuns: `RUNTIME_ALTERADO` (hash divergente), `CONTRATO_DIVERGENTE` (revis
 
 ```sh
 php tests/runtime-test.php
-ACBR_TEST_RUNTIME=/opt/minha-aplicacao/acbr-runtime-0.1.2 \
-ACBR_TEST_RUNTIME_ARCHIVE=/caminho/cosmemilton-acbr-node-linux-x64-0.1.2.tgz \
+ACBR_TEST_RUNTIME=/opt/minha-aplicacao/acbr-runtime-0.2.0 \
+ACBR_TEST_RUNTIME_ARCHIVE=/caminho/cosmemilton-acbr-node-linux-x64-0.2.0.tgz \
 php tests/runtime-test.php
 ```
 

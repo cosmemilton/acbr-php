@@ -256,7 +256,7 @@ final class OperationQueue implements \JsonSerializable
         if ($this->running['stop'] === 'TIMEOUT_MOTOR' && $frame['finished'] <= $this->running['deadline']) { $this->running['stop'] = null; }
         if ($frame['ok'] === true && is_array($frame['data'] ?? null) && is_bool($frame['data']['sucesso'] ?? null) && is_string($frame['data']['estado'] ?? null)) {
             $command = $frame['command'] ?? null;
-            if ($command !== null && (!is_string($command) || !in_array($command, ['gerarXml','validar','assinar','transmitir','consultar','cancelar','cartaCorrecao','inutilizar'], true))) { $this->finish(null, $this->error('RESPOSTA_INVALIDA', $this->running['fiscal'])); return; }
+            if ($command !== null && (!is_string($command) || !in_array($command, ['gerarXml','validar','assinar','transmitir','consultar','recuperarXml','cancelar','cartaCorrecao','inutilizar'], true))) { $this->finish(null, $this->error('RESPOSTA_INVALIDA', $this->running['fiscal'])); return; }
             $this->finish(new FiscalResult($frame['data'], $command), null);
         } elseif ($frame['ok'] === false && is_string($frame['code'] ?? null) && is_bool($frame['uncertain'] ?? null) && is_bool($frame['clean'] ?? null)) {
             $recovery = $frame['recovery'] ?? null;
@@ -346,6 +346,9 @@ final class OperationQueue implements \JsonSerializable
             'RUNTIME_NAO_EXECUTAVEL','RUNTIME_PIN_INVALIDO','SEGREDO_NAO_SERIALIZAVEL','TIMEOUT_MOTOR','XML_INVALIDO','ZLIB_AUSENTE',
             'CHAVE_INVALIDA','RECIBO_INVALIDO','PROTOCOLO_INVALIDO','JUSTIFICATIVA_INVALIDA','CORRECAO_INVALIDA','INUTILIZACAO_INVALIDA',
             'OPERACAO_INVALIDA','OPERACAO_NAO_SUPORTADA',
+            'RECUPERACAO_NAO_COMPROVADA','XML_NAO_ASSINADO','ASSINATURA_INVALIDA','XML_SCHEMA_INVALIDO','SCHEMAS_AUSENTES',
+            'IDENTIDADE_DIVERGENTE','RETORNO_INVALIDO','XML_ALTERADO','CERTIFICADO_DIVERGENTE','TLS_SERVIDOR_INVALIDO',
+            'CONTRATO_INCOMPATIVEL','LIMITE_EXCEDIDO','DEPENDENCIA_AUSENTE','SERVICOS_AUSENTES',
         ], true) ? $code : 'FALHA_ASYNC';
     }
     private function error(string $code, bool $uncertain = false, bool $clean = true, #[\SensitiveParameter] ?string $recovery = null): AcbrException
