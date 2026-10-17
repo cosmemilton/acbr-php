@@ -41,9 +41,9 @@ mkdir($temporary, 0700);
 try {
     $release = NativeRuntime::release();
     runtimeCheck($release['sourceRevision'] === 48590, 'Exact source revision');
-    runtimeCheck($release['version'] === '0.2.0', 'Exact runtime release');
+    runtimeCheck($release['version'] === '0.2.1', 'Exact runtime release');
     runtimeCheck($release['capabilities'] === ['recuperarXml'], 'Pinned recovery capability');
-    runtimeCheck($release['manifestSha256'] === '17f1f7ae68f2c358f7815130301cc9ea83c0919cc0faf185ceb02e9d93f34f29', 'Exact release manifest pin');
+    runtimeCheck($release['manifestSha256'] === 'd7e0bb150982daa3670d1ee8d6a1e0e1e422b2e213bc03c6ea8828ffea659414', 'Exact release manifest pin');
     runtimeFailure(fn () => NativeRuntime::resolve($temporary . '/absent'), 'RUNTIME_AUSENTE');
     foreach (['../runtime', 'https://example.invalid/runtime', "bad\0path", 'C:\\runtime'] as $path) {
         runtimeFailure(fn () => NativeRuntime::resolve($path), 'RUNTIME_CAMINHO_INVALIDO');
@@ -97,7 +97,7 @@ try {
     $archive = getenv('ACBR_TEST_RUNTIME_ARCHIVE');
     if (is_string($archive) && $archive !== '') {
         $installedArchive = NativeRuntime::install($archive, $temporary . '/from-archive');
-        runtimeCheck(count($installedArchive->manifest['files']) === 252, 'Verified tar installation inventory');
+        runtimeCheck(count($installedArchive->manifest['files']) === 264, 'Verified tar installation inventory');
         $source = $installedArchive->directory;
     }
     if (is_string($source) && $source !== '') {
@@ -113,7 +113,7 @@ try {
         putenv('LD_PRELOAD');
         putenv('ACBR_TEST_FAKE_SECRET');
         $copy = NativeRuntime::install($source, $temporary . '/installed');
-        runtimeCheck(count($copy->manifest['files']) === 252, 'Verified directory installation inventory');
+        runtimeCheck(count($copy->manifest['files']) === 264, 'Verified directory installation inventory');
         runtimeFailure(fn () => NativeRuntime::install($source, $copy->directory), 'RUNTIME_DESTINO_EXISTENTE');
         file_put_contents($copy->directory . '/openssl.cnf', "\n; tampering\n", FILE_APPEND);
         runtimeFailure(fn () => NativeRuntime::resolve($copy->directory), 'RUNTIME_ALTERADO');

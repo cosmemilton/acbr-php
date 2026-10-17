@@ -1,6 +1,63 @@
 # Verificação da expansão PHP
 
-## Recuperação nativa: 17/10/2026
+## Release SDK 0.1.0-alpha1 e runtime 0.2.1
+
+Esta pré-release do SDK fixa o runtime Linux x64/glibc 0.2.1. A auditoria do
+arquivo oficial confirmou **264 arquivos** no novo inventário: os 252 arquivos
+de 0.2.0 permanecem byte a byte iguais e foram acrescentados 12 arquivos de
+licença em `licenses/common/`. Worker, fontes de recuperação, protocolo, TLS,
+bibliotecas e schemas permanecem iguais. Os pins desta release estão em
+[runtime nativo](native-runtime.md).
+
+Na preparação desta release, foram executados novamente com o pin **0.2.1**:
+
+- Suíte completa: **3.776 checks/assertions** — processo 70, contrato/modelos
+  3.228, runtime 45, configuração 59, operações fiscais 105, recuperação 195 e async 74.
+- Geração nativa de XML sintético offline: aprovada.
+- Assinatura nativa offline: **106 assertions** aprovadas para NF-e/NFC-e,
+  schema, XMLDSig e QR/CSC, com A1 sintético efêmero.
+- Supervisão/encerramento do worker nativo: **9 assertions** aprovadas.
+- Recuperação nativa offline: **291 assertions**, com `ProcessTransport` real e
+  worker de teste compilado das fontes exatas 0.2.1 com `ACBR_NODE_TEST`.
+  A1, CA e respostas foram sintéticos; o HTTPS ficou restrito ao loopback.
+  O `nfeProc` foi verificado independentemente por XSD, RSA, digest e C14N;
+  o inventário oficial de 264 arquivos foi revalidado ao final.
+- Composer `validate --strict` e geração determinística dos 204 modelos: aprovados.
+- Consumidor Composer separado, pré-tag, instalado por cópia local do checkout:
+  CLI `vendor/bin/acbr-php`, instalação/verificação dos 264 arquivos e geração
+  nativa de XML sintético offline aprovadas.
+
+Essas execuções não usaram A1 real, SEFAZ ou nova numeração; não alteraram o
+truststore do sistema nem o runtime oficial. A compilação de teste permanece
+separada do runtime aceito pelo resolvedor do SDK.
+
+Para reproduzir no checkout de desenvolvimento desta release:
+
+```sh
+composer install
+composer validate --strict
+ACBR_TEST_RUNTIME=/caminho/runtime-0.2.1 \
+ACBR_TEST_RUNTIME_ARCHIVE=/caminho/cosmemilton-acbr-node-linux-x64-0.2.1.tgz \
+composer test
+ACBR_RUNTIME_DIR=/caminho/runtime-0.2.1 composer test:offline
+ACBR_RUNTIME_DIR=/caminho/runtime-0.2.1 composer test:signing-offline
+ACBR_TEST_RUNTIME=/caminho/runtime-0.2.1 composer test:async-native-offline
+ACBR_RUNTIME_DIR=/caminho/runtime-0.2.1 composer test:recovery-native-offline
+```
+
+Os registros históricos a seguir mantêm sua versão e ambiente. A prova pessoal das
+sete etapas e os 291 testes de recuperação com HTTPS sintético pertencem ao
+runtime **0.2.0**; não são apresentados como a execução 0.2.1 descrita acima. Os testes
+automatizados usam dados sintéticos; o roteiro fiscal pessoal mantém seus dados
+e artefatos privados fora do repositório.
+
+O pacote está cadastrado no Packagist. Após a publicação da tag do SDK, a
+instalação no consumidor usa `composer require cosmemilton/acbr-php:0.1.0-alpha1`
+e a CLI `php vendor/bin/acbr-php`. Os comandos de reprodução abaixo pertencem
+a checkouts de desenvolvimento das versões registradas, com `composer install`
+e a CLI local `php bin/acbr-php`.
+
+## Recuperação nativa com runtime 0.2.0: 17/10/2026
 
 Execução isolada em WSL Ubuntu 24.04, Linux x86-64/glibc, PHP 8.3.6. Os resultados
 desta seção correspondem ao código local de `recuperarXml` e ao runtime 0.2.0;
@@ -178,7 +235,8 @@ do cliente síncrono que delega criptografia ao executável.
 
 ## Limites restantes
 
-Nenhuma chamada SEFAZ, nenhum certificado real e nenhum teste em produção.
+Nesse registro de 14/10, nenhuma chamada SEFAZ, nenhum certificado real e nenhum teste em produção.
 DANFE/impressão e A3 não existem no motor fixado; Windows/ARM permanecem fora do
 pacote Linux. O comportamento tributário e a homologação da aplicação consumidora
-precisam de validação própria. Nenhuma publicação Packagist ou merge é presumido.
+precisam de validação própria. O cadastro atual no Packagist e a release
+0.1.0-alpha1 são descritos na seção inicial; não alteram a data dessas provas.
