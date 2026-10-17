@@ -1,5 +1,22 @@
 # Alterações
 
+## 0.1.0-alpha2 - 17/10/2026
+
+- CLI de ajuda padronizada: `describe [TARGET]` em português, `--json` para
+  saída estruturada e `ajuda [TARGET]` para JSON direto. Campos, tipos e alvo
+  padrão `TNFe` vêm do contrato já incluído no pacote.
+- `--help` e `-h` globais e por subcomando; `--version` identifica o SDK PHP,
+  separado da versão nativa. O JSON de ajuda inclui `sdkVersion`.
+- Mantidas as APIs `Contract::help()`, `fields()` e `formatHelp()`, os comandos
+  `runtime:*` e suas saídas JSON. O runtime permanece Linux x64/glibc 0.2.1,
+  sem alteração de contrato, modelos ou binários.
+- Guia de ajuda com exemplos para consumidor Composer e checkout; consultas
+  de metadados sem runtime, certificado ou operação fiscal.
+- Suíte CLI com 204 assertions; suíte completa com 3.985 checks/assertions e
+  consumidor Composer isolado com CLI e geração nativa sintética aprovados.
+  O teste de recuperação distingue inicialização lenta do subprocesso de uma
+  requisição iniciada, sem alterar o transporte de produção.
+
 ## 0.1.0-alpha1 - 17/10/2026
 
 - Primeira pré-release versionada do SDK PHP, disponível pelo pacote Composer
