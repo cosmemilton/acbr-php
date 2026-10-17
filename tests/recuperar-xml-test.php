@@ -233,9 +233,25 @@ WORKER;
         $attempts = strlen((string)file_get_contents($directory.'/attempts'));
         $timeout = $expect(static fn() => $call('hang', timeoutMs:100), 'TIMEOUT_MOTOR');
         $check(!$timeout->resultadoDesconhecido && $timeout->limpezaConfirmada && $timeout->xmlRecuperacao() === null, 'read-only recovery timeout is not a mutating fiscal uncertainty');
-        $check(strlen((string)file_get_contents($directory.'/attempts')) === $attempts + 1, 'transport does not retry recovery');
-        $start = hrtime(true);
-        $cancelled = $expect(static fn() => $call('hang', cancelled:static fn(): bool => hrtime(true) - $start >= 80000000), 'OPERACAO_CANCELADA');
+        // The deadline starts at proc_open, before the mock PHP worker starts.
+        // Cold filesystems may legitimately time out before it reads stdin.
+        $shortTimeoutAttempts = strlen((string)file_get_contents($directory.'/attempts')) - $attempts;
+        $check($shortTimeoutAttempts >= 0 && $shortTimeoutAttempts <= 1, 'short timeout cannot start more than one recovery attempt');
+
+        // Separately prove no retry after a timeout with enough startup time.
+        // A missing marker has its own assertion: it is an environment/startup
+        // failure rather than evidence that the transport retried the request.
+        $attempts = strlen((string)file_get_contents($directory.'/attempts'));
+        $timeout = $expect(static fn() => $call('hang', timeoutMs:5000), 'TIMEOUT_MOTOR');
+        $longTimeoutAttempts = strlen((string)file_get_contents($directory.'/attempts')) - $attempts;
+        $check($longTimeoutAttempts >= 1, 'mock worker processed request within the five-second startup bound');
+        $check($longTimeoutAttempts === 1, 'transport does not retry a started recovery after timeout');
+        $check(!$timeout->resultadoDesconhecido && $timeout->limpezaConfirmada && $timeout->xmlRecuperacao() === null, 'started recovery timeout remains read-only with confirmed cleanup');
+
+        $attempts = strlen((string)file_get_contents($directory.'/attempts'));
+        $cancelAfterStarted = static fn(): bool => strlen((string)file_get_contents($directory.'/attempts')) > $attempts;
+        $cancelled = $expect(static fn() => $call('hang', timeoutMs:5000, cancelled:$cancelAfterStarted), 'OPERACAO_CANCELADA');
+        $check(strlen((string)file_get_contents($directory.'/attempts')) === $attempts + 1, 'started recovery cancellation does not retry the request');
         $check(!$cancelled->resultadoDesconhecido && $cancelled->limpezaConfirmada, 'running recovery cancellation remains read-only');
     } finally {
         foreach ([$worker, $directory.'/attempts'] as $path) { if (is_file($path)) { unlink($path); } }

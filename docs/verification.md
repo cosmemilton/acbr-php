@@ -1,5 +1,38 @@
 # Verificação da expansão PHP
 
+## SDK 0.1.0-alpha2: ajuda CLI
+
+Na preparação desta release, a execução em Linux x64/glibc no WSL Ubuntu 24.04
+confirmou:
+
+- Suíte completa: **3.985 checks/assertions** — processo 70, contrato/modelos
+  3.228, runtime 45, configuração 59, operações fiscais 105, recuperação 200,
+  async 74 e CLI 204.
+- As **204 assertions da CLI** cobrem campos, tipos, coleções, alvo padrão,
+  texto em português, JSON, ajuda global e por subcomando, versão do SDK,
+  diagnósticos, canais e códigos de saída. A consulta usa o contrato incluído;
+  não exige runtime, A1 ou rede.
+- Composer `validate --strict` e geração determinística dos **204 modelos**:
+  aprovados. A quantidade de modelos é independente das 204 assertions CLI.
+- Consumidor Composer isolado, pré-tag, instalado por cópia local: arquivos
+  de código correspondentes ao checkout, matriz da CLI e geração nativa de
+  XML sintético offline aprovadas com o runtime 0.2.1.
+- Revisão independente aprovada. Comandos `runtime:*` e APIs de ajuda do
+  contrato preservados; contrato, modelos, pins e binários permanecem iguais
+  aos da alpha1.
+
+O teste de recuperação passou a separar o timeout curto, que pode vencer
+antes de o subprocesso de teste ler a requisição, da prova de timeout após
+início confirmado. O cancelamento do mock também aguarda o marcador de
+início. As verificações continuam exigindo ausência de retry e limpeza
+confirmada. Esse ajuste pertence à fixture de teste; não altera timeouts,
+cancelamento ou transporte de produção.
+
+Essas verificações não usaram A1 real nem serviço fiscal e não alteraram
+truststore ou runtime oficial. O consumidor acima foi testado antes da tag;
+indexação no Packagist e instalação da versão publicada são etapas posteriores.
+Os registros alpha1 e os históricos abaixo mantêm suas versões e resultados.
+
 ## Release SDK 0.1.0-alpha1 e runtime 0.2.1
 
 Esta pré-release do SDK fixa o runtime Linux x64/glibc 0.2.1. A auditoria do

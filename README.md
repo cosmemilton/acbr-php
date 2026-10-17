@@ -1,7 +1,7 @@
 # ACBr PHP
 
 Cliente PHP independente de Laravel/Symfony para o motor nativo público ACBr NF-e/NFC-e.
-**SDK PHP 0.1.0-alpha1, uma pré-release.** O roteiro de homologação NF-e 55 e os
+**SDK PHP 0.1.0-alpha2, uma pré-release.** O roteiro de homologação NF-e 55 e os
 limites das provas executadas estão registrados em [verificação](docs/verification.md).
 
 - PHP 8.2+, Composer, sem dependências de framework ou FFI.
@@ -19,10 +19,10 @@ limites das provas executadas estão registrados em [verificação](docs/verific
 O pacote [cosmemilton/acbr-php](https://packagist.org/packages/cosmemilton/acbr-php)
 está cadastrado no Packagist. Selecione explicitamente a pré-release do SDK:
 
-    composer require cosmemilton/acbr-php:0.1.0-alpha1
+    composer require cosmemilton/acbr-php:0.1.0-alpha2
     php vendor/bin/acbr-php runtime:release
 
-O SDK PHP **0.1.0-alpha1** e o runtime nativo **0.2.1** têm versões independentes.
+O SDK PHP **0.1.0-alpha2** e o runtime nativo **0.2.1** têm versões independentes.
 A tag do SDK disponibiliza a versão correspondente pelo Composer. Os comandos
 abaixo são executados na raiz da aplicação consumidora.
 
@@ -86,6 +86,25 @@ O caminho do exemplo pertence à aplicação. Em um checkout de desenvolvimento,
 fiscal, que nunca deve ser transmitida.
 A validação estrutural PHP verifica os tipos do contrato; não substitui regras fiscais.
 Um XML gerado sem assinatura pode ser rejeitado pelo schema NF-e que exige assinatura; isso é esperado.
+
+### Ajuda pela CLI
+
+Na aplicação consumidora, consulte campos e tipos sem runtime, A1 ou rede:
+
+    php vendor/bin/acbr-php --version
+    php vendor/bin/acbr-php --help
+    php vendor/bin/acbr-php describe --help
+    php vendor/bin/acbr-php describe Ide.tpNF
+    php vendor/bin/acbr-php describe TTipoNFe
+    php vendor/bin/acbr-php describe 'Det[].Prod.vProd' --json
+    php vendor/bin/acbr-php ajuda Ide.tpNF
+
+`describe` usa texto em português; `--json` seleciona metadados estruturados.
+`ajuda` retorna JSON diretamente. Sem alvo, ambos descrevem `TNFe`.
+Os comandos `runtime:*` conservam sua saída JSON e oferecem `--help` próprio.
+No checkout de desenvolvimento, use `php bin/acbr-php` após `composer install`.
+Veja [ajuda de campos, tipos e comandos](docs/ajuda.md) para caminhos,
+coleções, API PHP e códigos de saída.
 
 ### Modelos e help
 
