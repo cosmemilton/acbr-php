@@ -1,33 +1,41 @@
 # ACBr PHP
 
 Cliente PHP independente de Laravel/Symfony para o motor nativo público ACBr NF-e/NFC-e.
-**SDK em desenvolvimento. APIs do contrato Node implementadas; ainda não homologado para uso fiscal real.**
+**SDK PHP 0.1.0-alpha1, uma pré-release.** O roteiro de homologação NF-e 55 e os
+limites das provas executadas estão registrados em [verificação](docs/verification.md).
 
 - PHP 8.2+, Composer, sem dependências de framework ou FFI.
-- Motor **Linux x64 com glibc**, fixado na distribuição Node 0.2.0; sem Windows, ARM ou Alpine/musl.
+- Motor **Linux x64 com glibc**, fixado no runtime 0.2.1; sem Windows, ARM ou Alpine/musl.
 - Classes de configuração, documento, resultado e erro; 204 modelos gerados do contrato original.
 - Nove comandos nativos: gerarXml, validar, assinar, transmitir, consultar, cancelar, cartaCorrecao, inutilizar e recuperarXml, sempre um processo por operação.
 - Prazo, cancelamento cooperativo, limites de bytes, pipes não bloqueantes, drenagem de stderr e encerramento do processo pertencente à chamada.
 - Help de tipos/campos, validação estrutural e instalador nativo com SHA-256, inventário fechado e rejeição de symlinks.
 - A1 e CSC protegidos; testes de assinatura usam somente certificados sintéticos descartáveis.
 - Fila assíncrona opcional para Linux com pcntl/posix; API síncrona sem essas extensões.
-- Nenhum teste deste projeto chama a SEFAZ ou usa certificado real.
+- Os testes automatizados não chamam a SEFAZ nem usam certificado real.
 
-## Instalação de desenvolvimento
+## Instalação no consumidor (Composer)
 
-Este pacote ainda não foi publicado no Packagist. Na pasta deste repositório:
+O pacote [cosmemilton/acbr-php](https://packagist.org/packages/cosmemilton/acbr-php)
+está cadastrado no Packagist. Selecione explicitamente a pré-release do SDK:
 
-    composer install
-    php bin/acbr-php runtime:diagnose
+    composer require cosmemilton/acbr-php:0.1.0-alpha1
+    php vendor/bin/acbr-php runtime:release
+
+O SDK PHP **0.1.0-alpha1** e o runtime nativo **0.2.1** têm versões independentes.
+A tag do SDK disponibiliza a versão correspondente pelo Composer. Os comandos
+abaixo são executados na raiz da aplicação consumidora.
 
 Baixe o arquivo fixado; o instalador não faz downloads nem executa scripts externos:
 
     curl --fail --location --proto '=https' \
-      'https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.2.0.tgz' \
-      --output /tmp/acbr-linux-x64-0.2.0.tgz
-    php bin/acbr-php runtime:install /tmp/acbr-linux-x64-0.2.0.tgz
-    php bin/acbr-php runtime:verify
-    php bin/acbr-php runtime:diagnose
+      'https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.2.1.tgz' \
+      --output /tmp/acbr-linux-x64-0.2.1.tgz
+    mkdir -p var
+    php vendor/bin/acbr-php runtime:install /tmp/acbr-linux-x64-0.2.1.tgz ./var/acbr-runtime-0.2.1
+    export ACBR_RUNTIME_DIR="$PWD/var/acbr-runtime-0.2.1"
+    php vendor/bin/acbr-php runtime:verify
+    php vendor/bin/acbr-php runtime:diagnose
 
 O instalador compara tamanho e SHA-256 do arquivo com o pin do pacote antes de extrair;
 também valida o manifesto fixado e todos os arquivos. Preserva bibliotecas, schemas,
@@ -39,6 +47,19 @@ Nunca coloque o runtime em uma pasta gravável por usuários não confiáveis.
 Verificação de integridade não substitui permissões de implantação nem protege contra
 um atacante que já possa alterar o próprio pacote PHP.
 
+### Checkout de desenvolvimento
+
+Na raiz de um clone deste repositório, instale suas dependências e use a CLI local:
+
+    composer install
+    php bin/acbr-php runtime:release
+    php bin/acbr-php runtime:diagnose
+
+Nesse checkout, substitua `php vendor/bin/acbr-php` por `php bin/acbr-php` nos
+comandos de instalação/verificação acima. `tests/fixtures`, `examples` e `scripts`
+nas instruções de desenvolvimento são relativos à raiz do repositório; uma
+aplicação consumidora deve fornecer seus próprios arquivos e caminhos.
+
 ## Uso offline
 
     require 'vendor/autoload.php';
@@ -47,7 +68,9 @@ um atacante que já possa alterar o próprio pacote PHP.
     use Acbr\Document;
     use Acbr\Emitter;
 
-    $documento = Document::fromJson(file_get_contents('tests/fixtures/documento-sintetico.json'));
+    $caminhoDocumento = '/caminho/da-aplicacao/documento.json';
+    $jsonDocumento = file_get_contents($caminhoDocumento);
+    $documento = Document::fromJson($jsonDocumento);
     $emissor = new Emitter(
         new Configuration('11222333000181', 'CE', modelo: 55, ambiente: 2),
         timeoutMs: 10_000,
@@ -58,7 +81,9 @@ um atacante que já possa alterar o próprio pacote PHP.
     }
     $emissor->fechar();
 
-A fixture é sintética, sem valor fiscal e nunca deve ser transmitida.
+O caminho do exemplo pertence à aplicação. Em um checkout de desenvolvimento,
+`tests/fixtures/documento-sintetico.json` fornece uma fixture sintética, sem valor
+fiscal, que nunca deve ser transmitida.
 A validação estrutural PHP verifica os tipos do contrato; não substitui regras fiscais.
 Um XML gerado sem assinatura pode ser rejeitado pelo schema NF-e que exige assinatura; isso é esperado.
 
@@ -69,7 +94,7 @@ Um XML gerado sem assinatura pode ser rejeitado pelo schema NF-e que exige assin
     use Acbr\Model\TProd;
 
     $produto = (new TProd())->withCProd('TESTE')->withVProd('10.00');
-    $nota = TNFe::fromJson(file_get_contents('tests/fixtures/documento-sintetico.json'));
+    $nota = TNFe::fromJson($jsonDocumento);
 
     $campo = Contract::bundled()->help('Det[].Prod.vProd');
     $tipo = Contract::bundled()->help('TProd');
@@ -80,6 +105,8 @@ são **strings**, nunca float: '10.00'. Datas são strings ISO civis, sem conver
 automática de fuso. Campos omitidos continuam omitidos, sem defaults fiscais inventados.
 Campos desconhecidos, read-only, enums incorretos e tipos incompatíveis são rejeitados.
 Document e modelos são imutáveis; métodos with... retornam novos objetos.
+
+Na raiz do checkout de desenvolvimento, os exemplos e o gerador podem ser executados assim:
 
     php examples/ajuda.php 'Det[].Prod.vProd'
     php scripts/generate-models.php --check
@@ -102,6 +129,8 @@ Nenhuma API user-space pode garantir matar um processo bloqueado no kernel;
 se o encerramento não for confirmado, o emissor é fechado e o erro sinaliza esse fato.
 
 ## Testes
+
+Execute na raiz do checkout de desenvolvimento, após `composer install`:
 
     composer validate --strict
     composer test
@@ -145,7 +174,7 @@ Omita recibo quando não houver; não envie null. Carta de correção é restrit
 Identificadores fiscais são strings. Textos respeitam os limites UTF-8 em bytes do motor.
 
 `recuperarXml()` faz uma consulta pelo XML original assinado e devolve o `nfeProc`
-montado e validado pelo worker 0.2.0. Sucesso é `XML_RECUPERADO` com cStat100;
+montado e validado pelo worker 0.2.1. Sucesso é `XML_RECUPERADO` com cStat100;
 não retransmite nem altera `consultar()`. `retornoOriginal()` expõe explicitamente
 os campos ACBr disponíveis no frame, sem colocá-los no JSON/debug padrão.
 Veja [API, limites e exemplo de recuperação](docs/recuperar-xml.md).
@@ -163,7 +192,8 @@ incluindo verificação independente de XMLDSig e QR/CSC. Os testes automatizado
 de operações de rede usam mocks ou HTTPS local com dados sintéticos.
 Separadamente, um roteiro executado pessoalmente em homologação PE comprovou
 emissão, cancelamento, inutilização individual/faixa, consulta e recuperação
-integrada `recuperarXml` para NF-e 55. A prova do caso exercitado não certifica
+integrada `recuperarXml` para NF-e 55, usando as versões históricas descritas em
+[verificação](docs/verification.md). A prova do caso exercitado não certifica
 todos os cenários ou produção. Ambiente 2 continua sendo uma transmissão fiscal
 real quando a aplicação chama uma operação de rede.
 
@@ -181,7 +211,7 @@ nesta versão o instalador aceita somente a distribuição fixada.
 Alterações de motor/contrato precisam de atualização explícita dos pins e da geração/testes.
 
 Âncora do manifesto de publicação upstream:
-https://github.com/cosmemilton/acbr-node/tree/5ff66828eb70f942608517f1e11719272b2786b8
+https://github.com/cosmemilton/acbr-node/tree/7330817e4628b5fb7b49d4c638cdc23da0228ce8
 Esse vínculo não atesta o commit de compilação do binário nem um `gitHead` npm.
 
 Contrato: revisão ACBr 48590, SHA-256 e5a497cefe8e0e350a30da5cc04e88b35c38a98535893d52f878890260d1346d.

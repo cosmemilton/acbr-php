@@ -3,8 +3,8 @@ declare(strict_types=1);
 /**
  * Real native recovery integration, exclusively synthetic A1 and HTTPS localhost.
  * Linux prerequisites: PHP openssl/dom, fpc 3.2.2, Lazarus 3.0 units, tar and the
- * verified production runtime 0.2.0 including its source archive. No apt/npm.
- * Run: ACBR_RUNTIME_DIR=/absolute/runtime/acbr-php-0.2.0 php tests/recovery-native-offline.php
+ * verified production runtime 0.2.1 including its source archive. No apt/npm.
+ * Run: ACBR_RUNTIME_DIR=/absolute/runtime/acbr-php-0.2.1 php tests/recovery-native-offline.php
  * Builds an isolated -dACBR_NODE_TEST variant from unchanged published sources
  * in a fresh /tmp tree. Never alters the production worker, inventory, CA store
  * or service URLs. Test-only service INI accepts HTTPS localhost exclusively.

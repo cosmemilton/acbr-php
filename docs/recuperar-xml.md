@@ -1,5 +1,17 @@
 # Recuperar o XML com protocolo
 
+API do **SDK PHP 0.1.0-alpha1**, com o **runtime nativo 0.2.1** fixado pelo
+pacote. Para instalar na aplicação consumidora:
+
+```sh
+composer require cosmemilton/acbr-php:0.1.0-alpha1
+php vendor/bin/acbr-php runtime:release
+```
+
+Instale/verifique o runtime conforme [runtime nativo](native-runtime.md). Em um
+checkout de desenvolvimento, `composer install` e `php bin/acbr-php` são os
+comandos locais; exemplos e fixtures do repositório são relativos a esse checkout.
+
 ```php
 $resultado = $emissor->recuperarXml($xmlOriginalAssinado);
 ```
@@ -9,7 +21,7 @@ Não recebe chave, protocolo ou recibo adicionais. A configuração do emissor d
 conter o A1, CNPJ, UF, modelo e ambiente correspondentes ao documento.
 
 Esta chamada faz uma consulta de rede com o certificado configurado. O worker
-nativo 0.2.0 extrai a chave do XML, consulta sua situação e monta o `nfeProc`.
+nativo 0.2.1 extrai a chave do XML, consulta sua situação e monta o `nfeProc`.
 Não gera, assina ou retransmite a nota. `consultar()` permanece com seu contrato
 anterior e não passa a montar XML implicitamente.
 
@@ -44,7 +56,7 @@ try {
 Um status diferente de 100 retorna `sucesso=false`, `estado=CONSULTADO` e
 `codigo=RECUPERACAO_NAO_COMPROVADA`, com os campos ACBr disponíveis, sem inventar
 protocolo ou XML recuperado. Isso inclui 150, conforme o comportamento do motor
-0.2.0. Falhas locais/transporte usam `AcbrException` com códigos e mensagens
+0.2.1. Falhas locais/transporte usam `AcbrException` com códigos e mensagens
 seguros. A string original, o A1 e callbacks são argumentos sensíveis.
 
 ## Retorno original disponível
@@ -55,7 +67,7 @@ seguros. A string original, o A1 e callbacks são argumentos sensíveis.
 Ausência continua ausência. Não use esses acessos em logs ou JSON público.
 `jsonSerialize()` e debug da recuperação expõem somente o diagnóstico seguro.
 
-O retorno é identificado como `origem=frame_nativo`. No runtime 0.2.0, o XML de
+O retorno é identificado como `origem=frame_nativo`. No runtime 0.2.1, o XML de
 sucesso é o `nfeProc` composto pelo próprio motor. O worker não exporta também o
 `RetWS`/SOAP bruto dessa consulta: `retornoWebServiceOriginalDisponivel=false`
 torna esse limite explícito. O SDK não reconstrói diagnósticos que o motor tenha
@@ -63,11 +75,15 @@ descartado e não faz uma segunda consulta para obtê-los.
 
 ## Runtime e limites
 
-É necessário instalar a versão Linux x64/glibc **0.2.0** fixada em
+É necessário instalar a versão Linux x64/glibc **0.2.1** fixada em
 `resources/runtime-release.json`, com capability `recuperarXml`. A revisão ACBr
 48590, a IR e os 204 modelos permanecem iguais. O manifesto e o arquivo nativo
-mudaram; o runtime 0.1.2 não é aceito por este checkout. Instale em uma nova pasta
+mudaram; runtimes 0.1.2/0.2.0 não correspondem ao pin desta release. Instale em uma nova pasta
 para preservar instalações anteriores.
+
+O worker e as fontes de recuperação 0.2.1 são byte a byte iguais aos de 0.2.0;
+a atualização do inventário acrescenta licenças. A prova fiscal pessoal registrada
+em [verificação](verification.md) usou 0.2.0 e mantém essa identificação.
 
 Protocolos de 17 dígitos, eventos/protocolos adicionais não suportados e uma
 assinatura adicional no protocolo são recusados pelo motor atual. Não remova
@@ -82,3 +98,6 @@ Veja o [exemplo de escrita exclusiva](../examples/recuperar-xml.php). Ele recebe
 um emissor já configurado pelo chamador, não lê segredos por conta própria e
 preserva o arquivo de entrada. O teste fiscal pessoal é uma etapa separada dos
 testes sintéticos offline; disponibilizar a API não comprova homologação real.
+No consumidor, adapte esse exemplo a caminhos privados da sua aplicação para o
+XML assinado de entrada e o novo arquivo de saída; não use caminhos de fixtures
+de desenvolvimento como se fossem documentos fiscais do usuário.

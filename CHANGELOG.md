@@ -1,5 +1,22 @@
 # Alterações
 
+## 0.1.0-alpha1 - 17/10/2026
+
+- Primeira pré-release versionada do SDK PHP, disponível pelo pacote Composer
+  `cosmemilton/acbr-php`; instalação do consumidor com versão explícita e CLI
+  `vendor/bin/acbr-php`, separada do checkout de desenvolvimento.
+- Runtime Linux x64/glibc 0.2.1 fixado por arquivo, manifesto e inventário.
+  A versão do SDK é independente da versão do motor nativo. A revisão ACBr
+  48590, a IR e os 204 modelos permanecem iguais.
+- Inventário nativo com 264 arquivos: preserva os 252 arquivos anteriores e
+  acrescenta 12 arquivos de licença; worker e semântica de recuperação inalterados.
+  O SOAP/RetWS bruto da recuperação continua indisponível no frame do motor.
+- Nove comandos, incluindo `Emitter::recuperarXml()` e a fachada assíncrona,
+  com recuperação/composição nativa e sem retransmissão ou retry automático.
+- Documentação de instalação, recuperação, integridade e limites da pré-release.
+  As provas históricas com runtimes 0.1.2/0.2.0 mantêm suas versões e resultados;
+  não são apresentadas como novas execuções com 0.2.1.
+
 ## Em desenvolvimento - recuperação XML - 17/10/2026
 
 - `Emitter::recuperarXml()` e sua fachada assíncrona recebem a NFe original
@@ -17,7 +34,7 @@
   pessoal separado, a recuperação integrada foi comprovada em homologação PE,
   NF-e 55, com XML_RECUPERADO/100 e prova offline de schema, assinatura e protocolo.
   Dados e artefatos fiscais permanecem privados; essa prova não certifica todos
-  os cenários ou produção. Nenhum merge, tag ou publicação Packagist nesta etapa.
+  os cenários ou produção. Esse registro antecede a release 0.1.0-alpha1.
 
 ## Em desenvolvimento — 14/10/2026
 
@@ -43,8 +60,8 @@
 
 Nenhum teste chama a SEFAZ nem usa certificado de contribuinte. APIs de rede testadas
 por mock não constituem homologação fiscal. O motor fixado continua A1 e sem DANFE/
-impressão. Windows/ARM não foram adicionados ao pacote Linux. Não houve publicação
-Packagist ou criação de release.
+impressão. Windows/ARM não foram adicionados ao pacote Linux. À data de 14/10,
+não havia release versionada do SDK; esse registro antecede 0.1.0-alpha1.
 
 ## Checkpoint inicial — 14/10/2026
 

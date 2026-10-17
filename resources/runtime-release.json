@@ -1,22 +1,22 @@
 {
   "formatVersion": 1,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "upstreamRepository": "https://github.com/cosmemilton/acbr-node",
-  "upstreamCommit": "5ff66828eb70f942608517f1e11719272b2786b8",
+  "upstreamCommit": "7330817e4628b5fb7b49d4c638cdc23da0228ce8",
   "upstreamCommitPurpose": "release-manifest-anchor",
-  "releaseManifest": "release/0.2.0/manifest.json",
-  "releaseManifestSha256": "f81d2a291fc05941b338678c1551c07f1f9cd52801823efef42b7ad38eeb0a69",
+  "releaseManifest": "release/0.2.1/manifest.json",
+  "releaseManifestSha256": "24a776768fb02ec4afa6119ad96275f1a880a8f9f0d8a845e931b04420b91015",
   "platform": "linux",
   "arch": "x64",
   "sourceRevision": 48590,
   "contractHash": "e5a497cefe8e0e350a30da5cc04e88b35c38a98535893d52f878890260d1346d",
   "capabilities": ["recuperarXml"],
-  "manifestSha256": "17f1f7ae68f2c358f7815130301cc9ea83c0919cc0faf185ceb02e9d93f34f29",
+  "manifestSha256": "d7e0bb150982daa3670d1ee8d6a1e0e1e422b2e213bc03c6ea8828ffea659414",
   "archive": {
     "name": "cosmemilton-acbr-node-linux-x64",
-    "file": "cosmemilton-acbr-node-linux-x64-0.2.0.tgz",
-    "url": "https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.2.0.tgz",
-    "bytes": 51633932,
-    "sha256": "d2beccbcf31820ebfc49ce0e246b8fe500f5757df458a0985cd09745ea369c45"
+    "file": "cosmemilton-acbr-node-linux-x64-0.2.1.tgz",
+    "url": "https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.2.1.tgz",
+    "bytes": 51682585,
+    "sha256": "029e23b5fc05e0886a9e988300ef46811db0705f687109d114d34e87500d1b5f"
   }
 }
