@@ -1,8 +1,12 @@
 {
   "name": "cosmemilton/acbr-php",
   "description": "Framework-independent PHP client for the pinned ACBr NF-e/NFC-e Linux worker",
+  "homepage": "https://miltonjunior.dev.br/acbr-php/",
   "type": "library",
   "license": "LGPL-2.1-or-later",
+  "support": {
+    "docs": "https://miltonjunior.dev.br/acbr-php/"
+  },
   "require": {
     "php": ">=8.2",
     "ext-json": "*"
