@@ -43,6 +43,11 @@ final class AsyncEmitter implements \JsonSerializable
         $emitter = $this->emitter;
         return $this->queue->submit(static fn(#[\SensitiveParameter] callable $cancelled): FiscalResult => $emitter->consultar($data, $cancelled), false);
     }
+    public function recuperarXml(#[\SensitiveParameter] string $signedXml): Future
+    {
+        $emitter = $this->emitter;
+        return $this->queue->submit(static fn(#[\SensitiveParameter] callable $cancelled): FiscalResult => $emitter->recuperarXml($signedXml, $cancelled), false);
+    }
     public function cancelar(#[\SensitiveParameter] array $data): Future
     {
         $data = $this->snapshot($data);

@@ -4,9 +4,9 @@ Cliente PHP independente de Laravel/Symfony para o motor nativo público ACBr NF
 **SDK em desenvolvimento. APIs do contrato Node implementadas; ainda não homologado para uso fiscal real.**
 
 - PHP 8.2+, Composer, sem dependências de framework ou FFI.
-- Motor **Linux x64 com glibc**, fixado na distribuição Node 0.1.2; sem Windows, ARM ou Alpine/musl.
+- Motor **Linux x64 com glibc**, fixado na distribuição Node 0.2.0; sem Windows, ARM ou Alpine/musl.
 - Classes de configuração, documento, resultado e erro; 204 modelos gerados do contrato original.
-- Oito operações do contrato: gerarXml, validar, assinar, transmitir, consultar, cancelar, cartaCorrecao e inutilizar, sempre um processo nativo por operação.
+- Nove comandos nativos: gerarXml, validar, assinar, transmitir, consultar, cancelar, cartaCorrecao, inutilizar e recuperarXml, sempre um processo por operação.
 - Prazo, cancelamento cooperativo, limites de bytes, pipes não bloqueantes, drenagem de stderr e encerramento do processo pertencente à chamada.
 - Help de tipos/campos, validação estrutural e instalador nativo com SHA-256, inventário fechado e rejeição de symlinks.
 - A1 e CSC protegidos; testes de assinatura usam somente certificados sintéticos descartáveis.
@@ -23,9 +23,9 @@ Este pacote ainda não foi publicado no Packagist. Na pasta deste repositório:
 Baixe o arquivo fixado; o instalador não faz downloads nem executa scripts externos:
 
     curl --fail --location --proto '=https' \
-      'https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.1.2.tgz' \
-      --output /tmp/acbr-linux-x64-0.1.2.tgz
-    php bin/acbr-php runtime:install /tmp/acbr-linux-x64-0.1.2.tgz
+      'https://registry.npmjs.org/cosmemilton-acbr-node-linux-x64/-/cosmemilton-acbr-node-linux-x64-0.2.0.tgz' \
+      --output /tmp/acbr-linux-x64-0.2.0.tgz
+    php bin/acbr-php runtime:install /tmp/acbr-linux-x64-0.2.0.tgz
     php bin/acbr-php runtime:verify
     php bin/acbr-php runtime:diagnose
 
@@ -108,6 +108,7 @@ se o encerramento não for confirmado, o emissor é fechado e o erro sinaliza es
     ACBR_RUNTIME_DIR=/caminho/runtime composer test:offline
     ACBR_RUNTIME_DIR=/caminho/runtime composer test:signing-offline
     ACBR_TEST_RUNTIME=/caminho/runtime composer test:async-native-offline
+    ACBR_RUNTIME_DIR=/caminho/runtime composer test:recovery-native-offline
 
 A suíte usa Python 3 somente como worker de teste; o pacote PHP não depende de Python.
 Veja [verificação](docs/verification.md) para resultados e limites do ambiente testado.
@@ -135,12 +136,19 @@ Os formatos são:
 
     $emissor->transmitir($xmlAssinado);
     $emissor->consultar(['chave' => $chave, 'recibo' => $reciboOpcional]);
+    $emissor->recuperarXml($xmlOriginalAssinado);
     $emissor->cancelar(['chave' => $chave, 'protocolo' => $protocolo, 'justificativa' => $texto]);
     $emissor->cartaCorrecao(['chave' => $chave, 'correcao' => $texto, 'sequenciaEvento' => 1]);
     $emissor->inutilizar(['ano' => 26, 'serie' => 1, 'numeroInicial' => 1, 'numeroFinal' => 2, 'justificativa' => $texto]);
 
 Omita recibo quando não houver; não envie null. Carta de correção é restrita ao modelo 55.
 Identificadores fiscais são strings. Textos respeitam os limites UTF-8 em bytes do motor.
+
+`recuperarXml()` faz uma consulta pelo XML original assinado e devolve o `nfeProc`
+montado e validado pelo worker 0.2.0. Sucesso é `XML_RECUPERADO` com cStat100;
+não retransmite nem altera `consultar()`. `retornoOriginal()` expõe explicitamente
+os campos ACBr disponíveis no frame, sem colocá-los no JSON/debug padrão.
+Veja [API, limites e exemplo de recuperação](docs/recuperar-xml.md).
 
 resultado->statusEnvio() exige estado, cStat e identidade/protocolo coerentes antes
 de classificar uma operação como confirmada. Resultado incompleto ou contraditório
@@ -151,9 +159,13 @@ acesso explícito ao XML original; ele não aparece no JSON/debug do erro.
 ## Matriz, limites e homologação
 
 A geração/assinatura/validação real foi testada offline para NF-e 55 e NFC-e 65,
-incluindo verificação independente de XMLDSig e QR/CSC. Operações SEFAZ foram
-testadas por mocks locais, não por homologação remota. Ambiente 2 continua sendo
-uma transmissão fiscal real quando a aplicação chama uma operação de rede.
+incluindo verificação independente de XMLDSig e QR/CSC. Os testes automatizados
+de operações de rede usam mocks ou HTTPS local com dados sintéticos.
+Separadamente, um roteiro executado pessoalmente em homologação PE comprovou
+emissão, cancelamento, inutilização individual/faixa, consulta e recuperação
+integrada `recuperarXml` para NF-e 55. A prova do caso exercitado não certifica
+todos os cenários ou produção. Ambiente 2 continua sendo uma transmissão fiscal
+real quando a aplicação chama uma operação de rede.
 
 O pacote mantém Linux x64/glibc como alvo. PHP 8.2/8.3/8.4 e detalhes de prova
 estão em [matriz](docs/platform-matrix.md) e [verificação](docs/verification.md).
@@ -168,7 +180,9 @@ do runtime ao redistribuir. O motor não foi alterado e permanece como component
 nesta versão o instalador aceita somente a distribuição fixada.
 Alterações de motor/contrato precisam de atualização explícita dos pins e da geração/testes.
 
-Upstream: https://github.com/cosmemilton/acbr-node/tree/eea82662eb60ea05b5dd164cf293438a202760a7
+Âncora do manifesto de publicação upstream:
+https://github.com/cosmemilton/acbr-node/tree/5ff66828eb70f942608517f1e11719272b2786b8
+Esse vínculo não atesta o commit de compilação do binário nem um `gitHead` npm.
 
 Contrato: revisão ACBr 48590, SHA-256 e5a497cefe8e0e350a30da5cc04e88b35c38a98535893d52f878890260d1346d.
 Não é um pacote oficial do Projeto ACBr.

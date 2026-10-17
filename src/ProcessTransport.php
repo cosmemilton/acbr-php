@@ -5,7 +5,7 @@ namespace Acbr;
 /** One owned child per request; never a shell, never a fiscal retry. */
 final class ProcessTransport
 {
-    private const STATES = ['DENEGADO','XML_GERADO','VALIDADO','ASSINADO','AUTORIZADO','REJEITADO','PENDENTE','INDETERMINADO','CONSULTADO','CANCELADO','EVENTO_REGISTRADO','INUTILIZADO','ERRO'];
+    private const STATES = ['DENEGADO','XML_GERADO','VALIDADO','ASSINADO','AUTORIZADO','XML_RECUPERADO','REJEITADO','PENDENTE','INDETERMINADO','CONSULTADO','CANCELADO','EVENTO_REGISTRADO','INUTILIZADO','ERRO'];
     public function __construct(private readonly int $timeoutMs = 120000, private readonly int $maxBytes = 8388608)
     {
         if ($timeoutMs < 1 || $timeoutMs > 120000 || $maxBytes < 256 || $maxBytes > 8388608) {
@@ -59,6 +59,7 @@ final class ProcessTransport
                             catch (\JsonException) { throw new AcbrException('RESPOSTA_INVALIDA', 'JSON inválido na resposta do motor.', $uncertain || $sending); }
                             if (!is_array($frame) || array_is_list($frame) || ($frame['id'] ?? null) !== ($request['id'] ?? null)) { throw new AcbrException('RESPOSTA_INVALIDA', 'Identificador de resposta inválido.', $uncertain || $sending); }
                             if (($frame['tipo'] ?? null) === 'envioIniciado') {
+                                if (($request['comando'] ?? null) === 'recuperarXml') { throw new AcbrException('RESPOSTA_INVALIDA', 'Recuperação de XML não pode iniciar envio fiscal.'); }
                                 if ($result !== null || $sending) { throw new AcbrException('RESPOSTA_INVALIDA', 'Sequência de eventos inválida.', true); }
                                 $sending = true; continue;
                             }
@@ -67,6 +68,8 @@ final class ProcessTransport
                             if (array_key_exists('cStat', $frame) && (!is_int($frame['cStat']) || $frame['cStat'] < 1 || $frame['cStat'] > 9999)) { throw new AcbrException('RESPOSTA_INVALIDA', 'Status fiscal inválido.', $uncertain || $sending); }
                             if (array_key_exists('envioIniciado', $frame) && (!is_bool($frame['envioIniciado']) || ($sending && !$frame['envioIniciado']))) { throw new AcbrException('RESPOSTA_INVALIDA', 'Status de envio inconsistente.', $uncertain || $sending); }
                             foreach (['codigo','xMotivo','chave','protocolo','recibo'] as $key) { if (array_key_exists($key, $frame) && !is_string($frame[$key])) { throw new AcbrException('RESPOSTA_INVALIDA', 'Campo de resposta inválido.', $uncertain || $sending); } }
+                            if (($request['comando'] ?? null) === 'recuperarXml') { $this->recoveryFrame($frame); }
+                            elseif (($frame['estado'] ?? null) === 'XML_RECUPERADO') { throw new AcbrException('RESPOSTA_INVALIDA', 'Estado de recuperação fora do comando correspondente.', $uncertain || $sending); }
                             if ($sending) { $frame['envioIniciado'] = true; }
                             $result = new FiscalResult($frame, $request['comando'] ?? null);
                         }
@@ -108,5 +111,29 @@ final class ProcessTransport
             usleep(1000);
         } while (hrtime(true) < $deadline);
         return false;
+    }
+
+    private function recoveryFrame(#[\SensitiveParameter] array $frame): void
+    {
+        if (($frame['envioIniciado'] ?? null) !== false || (($frame['estado'] ?? null) === 'XML_RECUPERADO') !== $frame['sucesso']) {
+            throw new AcbrException('RESPOSTA_INVALIDA', 'Estado ou envio incompatível com recuperação de XML.');
+        }
+        if (!$frame['sucesso'] && (!in_array($frame['estado'], ['ERRO','CONSULTADO'], true) || isset($frame['xmlBase64']) || isset($frame['protocolo']))) {
+            throw new AcbrException('RESPOSTA_INVALIDA', 'Falha de recuperação com estado ou conteúdo de sucesso.');
+        }
+        if ($frame['sucesso'] && (($frame['cStat'] ?? null) !== 100 || !is_string($frame['chave'] ?? null) || preg_match('/\A[0-9]{44}\z/D', $frame['chave']) !== 1
+            || !is_string($frame['protocolo'] ?? null) || preg_match('/\A[0-9]{15}\z/D', $frame['protocolo']) !== 1 || !isset($frame['xmlBase64']))) {
+            throw new AcbrException('RESPOSTA_INVALIDA', 'Recuperação sem XML e protocolo de autorização válidos.');
+        }
+        if (isset($frame['xmlBase64'])) {
+            $xml = base64_decode($frame['xmlBase64'], true);
+            if (!is_string($xml) || strlen($xml) > 4194304 || preg_match('//u', $xml) !== 1 || str_contains($xml, "\0")) {
+                throw new AcbrException('RESPOSTA_INVALIDA', 'XML recuperado inválido ou acima de 4 MiB.');
+            }
+        }
+        if (($frame['estado'] ?? null) === 'CONSULTADO' && (($frame['codigo'] ?? null) !== 'RECUPERACAO_NAO_COMPROVADA' || !isset($frame['cStat']) || $frame['cStat'] === 100
+            || !is_string($frame['chave'] ?? null) || preg_match('/\A[0-9]{44}\z/D', $frame['chave']) !== 1 || isset($frame['xmlBase64']) || isset($frame['protocolo']))) {
+            throw new AcbrException('RESPOSTA_INVALIDA', 'Consulta de recuperação não comprovada com campos incoerentes.');
+        }
     }
 }

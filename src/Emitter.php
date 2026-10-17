@@ -44,6 +44,11 @@ final class Emitter
         if (array_key_exists('recibo', $data)) { $this->digits($data['recibo'], 15, 'RECIBO_INVALIDO'); }
         return $this->request('consultar', $data, $cancelled);
     }
+    /** The pinned native worker validates the signed NFe and recovers its protocol; never retransmits it. */
+    public function recuperarXml(#[\SensitiveParameter] string $signedXml, #[\SensitiveParameter] ?callable $cancelled = null): FiscalResult
+    {
+        return $this->request('recuperarXml', $this->xmlData($signedXml), $cancelled);
+    }
     public function cancelar(#[\SensitiveParameter] array $data, #[\SensitiveParameter] ?callable $cancelled = null): FiscalResult
     {
         $this->keys($data, ['chave','protocolo','justificativa']);
@@ -98,7 +103,7 @@ final class Emitter
     {
         if ($this->closed) { throw new AcbrException('EMISSOR_FECHADO', 'Emissor encerrado.'); }
         if ($cancelled && $cancelled()) { throw new AcbrException('OPERACAO_CANCELADA', 'Operação cancelada antes da execução.'); }
-        if (in_array($command, ['assinar','transmitir','consultar','cancelar','cartaCorrecao','inutilizar'], true) && !$this->configuration->hasCertificate()) { throw new AcbrException('CERTIFICADO_AUSENTE', 'Esta operação exige um certificado A1.'); }
+        if (in_array($command, ['assinar','transmitir','consultar','recuperarXml','cancelar','cartaCorrecao','inutilizar'], true) && !$this->configuration->hasCertificate()) { throw new AcbrException('CERTIFICADO_AUSENTE', 'Esta operação exige um certificado A1.'); }
         $metadata = $this->contract->metadata();
         $request = ['versao'=>1, 'id'=>bin2hex(random_bytes(16)), 'sourceRevision'=>$metadata['sourceRevision'], 'contractHash'=>$metadata['contractHash'], 'comando'=>$command, 'config'=>$this->configuration->toWire()] + $data;
         try { return new FiscalResult($this->engine->execute($request, $cancelled)->data(), $command); }

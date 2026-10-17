@@ -1,5 +1,24 @@
 # Alterações
 
+## Em desenvolvimento - recuperação XML - 17/10/2026
+
+- `Emitter::recuperarXml()` e sua fachada assíncrona recebem a NFe original
+  assinada e usam o comando nativo 0.2.0 para consultar e devolver `nfeProc`.
+- Sucesso restrito a XML_RECUPERADO/cStat100, com validação nativa de identidade,
+  ambiente, protocolo, digest e preservação da assinatura. `consultar()` mantém
+  o comportamento anterior; não há retransmissão ou retry automático.
+- Runtime Linux x64/glibc 0.2.0 fixado por arquivo, manifesto e inventário completo.
+  Revisão ACBr, IR e modelos permanecem iguais; instalações 0.1.2 são preservadas
+  em sua própria pasta e não são aceitas pelo novo pin.
+- Acesso explícito `FiscalResult::retornoOriginal()` preserva os campos ACBr
+  disponíveis no frame. O SOAP/RetWS bruto da recuperação não é exportado pelo
+  motor atual e não é apresentado como disponível.
+- Testes sintéticos positivos/negativos e documentação da API. Em roteiro
+  pessoal separado, a recuperação integrada foi comprovada em homologação PE,
+  NF-e 55, com XML_RECUPERADO/100 e prova offline de schema, assinatura e protocolo.
+  Dados e artefatos fiscais permanecem privados; essa prova não certifica todos
+  os cenários ou produção. Nenhum merge, tag ou publicação Packagist nesta etapa.
+
 ## Em desenvolvimento — 14/10/2026
 
 ### Expansão do cliente PHP

@@ -19,7 +19,8 @@
     "test": "php tests/run.php",
     "test:offline": "php tests/offline.php",
     "test:signing-offline": "php tests/signing-offline.php",
-    "test:async-native-offline": "php tests/async-native-offline.php"
+    "test:async-native-offline": "php tests/async-native-offline.php",
+    "test:recovery-native-offline": "php tests/recovery-native-offline.php"
   },
   "suggest": {
     "ext-zlib": "Required only to install the pinned native .tgz archive",

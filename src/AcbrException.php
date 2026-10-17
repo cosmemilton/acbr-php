@@ -5,7 +5,7 @@ final class AcbrException extends \RuntimeException implements \JsonSerializable
 {
     public function __construct(
         public readonly string $codigo,
-        string $message,
+        #[\SensitiveParameter] string $message,
         public readonly bool $resultadoDesconhecido = false,
         public readonly bool $limpezaConfirmada = true,
         #[\SensitiveParameter] private readonly ?string $xmlRecoveryBase64 = null,
