@@ -225,6 +225,14 @@ DANFE/impressão e A3 não existem no motor fixado. Exigem extensão/substituiç
 nativa própria; não foram simulados como métodos funcionais.
 Windows e ARM não são suportados por este pacote, conforme escopo Linux.
 
+## Apoie o projeto
+
+Seu apoio ajuda a manter este projeto. Esta biblioteca facilita a integração
+com o ACBr em PHP. Se o projeto ajuda você ou sua empresa, considere apoiar
+sua manutenção pelo [GitHub Sponsors](https://github.com/sponsors/cosmemilton).
+As contribuições ajudam a custear a infraestrutura, manter a documentação
+e dedicar tempo a correções, testes e melhorias. Qualquer valor é bem-vindo.
+
 ## Origem e licença
 
 LGPL-2.1-or-later. Preserve [LICENSE](LICENSE), [NOTICE](NOTICE), sources/ e licenses/
